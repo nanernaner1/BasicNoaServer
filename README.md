@@ -12,3 +12,6 @@
  Not much help can/will be given for this, as it is a one-off to merge into larger projects.
 
 Probably needs to have flask, speech_recognition, and requests installed.  I think that is all that is needed that isn't in default python. 
+
+
+GPT4All provider not tested
