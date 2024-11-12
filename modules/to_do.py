@@ -79,11 +79,12 @@ class ToDoManager:
     
 
 data_dir = "data"
+tm = ToDoManager(os.path.join(data_dir, "to_do"))
 
 def ingest(data, provider):
     
     print("[To-Do Module] Ingesting data:", data)
-    tm = ToDoManager(os.path.join(data_dir, "to_do"))
+    
     
     #first, check if there is any string with a trigger phrase, such as to-do, to do todo etc
     if any(phrase in data.lower() for phrase in trigger_phrases):
