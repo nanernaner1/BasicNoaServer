@@ -3,13 +3,13 @@ import json
 import datetime
 
 
-class ToDoManager:
+class LatticeManager:
     def __init__(self, dir_path):
         self.dir_path = dir_path
         if not os.path.exists(self.dir_path):
             os.makedirs(self.dir_path)
         self.to_do_list = self.load_to_do_list()
-        self.module_name = "To-Do" # used to filter it in menus and such for later
+        self.module_name = "Lattice Notes" # used to filter it in menus and such for later
         self.module_desc = "A module to manage to-do items." # used to describe the module in menus and such for later
         self.module_trigger_phrases = ["create to-do", "create todo", "create to do", "list to-dos", "list todos", "list to dos", "remind me", "list reminders", "reminder to", "remember to", "remember that"] # used to trigger the module in the main AI loop for later, don't need to describe them vs be descriptive in name? simple trigger that isn't as cool as wider trigger options but maybe more robust for now? 
         self.list_trigger_phrases = ["list", "what are", "what to", "what is there", "what do", "remind me", "what does"] #second pass, to find the relevant function to trigger off the input
