@@ -21,7 +21,7 @@ def convert_tts_into_audio_file(text: str):
         print(i)  # i => index
         print(gs) # gs => graphemes/text
         print(ps) # ps => phonemes
-        sf.write(f'last_response.wav', audio, 24000) # save each audio file
+        sf.write(f'audio_responses/{i}-last_response.wav', audio, 24000) # save each audio file
 
 def read_speech_from_audio_file(wav_filename: str):
     with io.BytesIO() as output:

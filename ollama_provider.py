@@ -34,7 +34,8 @@ class OllamaProvider(ProviderBase):
             elif 'message' in completion and len(completion['message']) > 0:
                 print("Message:", completion['message'])
                 print("Content:", completion['message']['content'])
-                message = completion['message']['content'].split("</think>")[1].strip()
+                # message = completion['message']['content'].split("</think>")[1].strip()
+                message = completion['message']['content'].split("</think>")[0].split("<think>")[1].strip()
                 return message
             else:
                 print("Unexpected response format:", completion)

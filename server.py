@@ -6,6 +6,7 @@ import requests
 import logging
 import datetime
 import os
+from logging import Logger
 
 import wave
 import io
@@ -20,6 +21,8 @@ import threading
 
 
 app = Flask(__name__)
+
+# Setup Logger
 
 # Ensure the data directory exists
 data_dir = "data"
@@ -58,6 +61,11 @@ def process_request():
     if 'location' not in request.form or 'time' not in request.form or 'messages' not in request.form:
         return jsonify({"error": "Missing form data"}), 200
 
+    # Parse response for its contents
+    # Send contents to LLM
+    # Retrieve response from LLM
+    # Convert response to text and audio file(s)
+    # Prepare JSON response to be returned to user 
     
     audio = request.files['audio']
     image = request.files['image']
@@ -111,7 +119,18 @@ def process_request():
     convert_tts_into_audio_file(lm_data)
 
     # Read the audio file and convert it to base64 to be delivered in response
+    # Audio data is stored across multiple audio files in directory "audio_responses". Iterate over all files in target directory and return all audio as single base64 string
+    def read_wav_files_from_directory(directory):
+        base64str = ""
+        for filename in os.listdir(directory):
+            if filename.endswith(".wav"):
+                with open(os.path.join(directory,filename), "rb") as f:
+                    base64str += base64.b64encode(f.read()).decode("utf-8") + ","
+        print(f"Retrieved Audio files from directory: {directory})")
+        return base64str
+
     base64str = read_speech_from_audio_file('last_response.wav')
+    # base64str = read_wav_files_from_directory('audio_responses')
 
     # Format the response
     response = {
