@@ -1,7 +1,3 @@
-# 2024 Curiosiate. 
-
-
-
 from flask import Flask, request, jsonify
 from io import BytesIO
 import speech_recognition as sr
@@ -13,13 +9,10 @@ import os
 
 import wave
 import io
+from text_to_speech import convert_tts_into_audio_file, read_speech_from_audio_file
 
 from lm_studio_provider import LMStudioProvider
 from ollama_provider import OllamaProvider
-
-from text_to_speech import tts
-
-
 
 from modules.module_loader import load_modules, find_and_execute_module
 import threading
@@ -114,27 +107,11 @@ def process_request():
     # Send data to local LM Studio chat model
     lm_data = provider.send_request(chat_messages, 0.7)
 
-    # # Read in sample wav file 1.wav 
-    # import wave
-    # wf = wave.open('1.wav', 'r')
-    # audio_data = wf.readframes(wf.getnframes())
-    # sample_rate = wf.getframerate()
-    # raw_audio_bytes = audio_data
-    # audio_base64 = base64.b64encode(raw_audio_bytes).decode('utf-8')
-    
-    # Convert response from LLM text into audio wav file and deliver in json response
-    tts(lm_data)
-    with io.BytesIO() as output:
-        with wave.open(output, "wb") as wav:
-            wav.setparams((1, 2, 24000, 0, 'NONE', 'NONE'))
+    # Convert response from LLM text into audio wav file
+    convert_tts_into_audio_file(lm_data)
 
-            with open('0.wav', 'rb') as input_file:
-                wav.writeframes(input_file.read())
-        
-        output.seek(0)
-        base64str = base64.b64encode(output.getvalue()).decode('utf-8')
-    
-
+    # Read the audio file and convert it to base64 to be delivered in response
+    base64str = read_speech_from_audio_file('last_response.wav')
 
     # Format the response
     response = {
