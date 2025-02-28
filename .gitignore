@@ -151,3 +151,10 @@ archive/
 savedir/
 output/
 tool_output/
+
+# Untracked Testing scripts
+testing_*.ipynb
+testing_*.py
+
+# Assets from testing to untrack
+*.wav

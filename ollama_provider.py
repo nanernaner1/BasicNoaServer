@@ -2,7 +2,7 @@ import base64
 import requests
 from provider_base import ProviderBase
 
-class LMStudioProvider(ProviderBase):
+class OllamaProvider(ProviderBase):
     def send_request(self, chat_messages, temperature):
         url = "http://localhost:11434/api/chat"
         headers = {
@@ -12,12 +12,8 @@ class LMStudioProvider(ProviderBase):
             "messages": chat_messages,
             "temperature": temperature,
             "model": "deepseek-r1:7b",
+            # "model": "qwen2.5:3b",
             "stream": False
-        # url = "http://localhost:1234/v1/chat/completions"
-        # headers = {"Content-Type": "application/json"}
-        # payload = {
-        #     "messages": chat_messages,
-        #     "temperature": temperature
         }
         
         try:
@@ -27,13 +23,19 @@ class LMStudioProvider(ProviderBase):
             completion = response.json()
             
             # Debugging: Print the entire response
-            print("Received response from Ollama:", completion)
+            print(f"Received response from {completion['model']}:", completion)
+            print(f"Printing response keys: {completion.keys()}")
             
             if 'choices' in completion and len(completion['choices']) > 0:
                 print("Choices:", completion['choices'][0])
                 print("Message:", completion['choices'][0]['message'])
                 print("Content:", completion['choices'][0]['message']['content'])
                 return completion['choices'][0]['message']['content']
+            elif 'message' in completion and len(completion['message']) > 0:
+                print("Message:", completion['message'])
+                print("Content:", completion['message']['content'])
+                message = completion['message']['content'].split("</think>")[1].strip()
+                return message
             else:
                 print("Unexpected response format:", completion)
                 return "Unexpected response format from Ollama"
@@ -49,13 +51,11 @@ class LMStudioProvider(ProviderBase):
             return "Unexpected response format from Ollama"
 
     def send_vision_request(self, base64_image_data, query):
-        # url = "http://localhost:1234/v1/chat/completions"
         url = "http://localhost:11434/api/chat"
         headers = {"Content-Type": "application/json"}
         
         payload = {
             "model": "deepseek-r1:7b",
-            # "model": "xtuner/llava-llama-3-8b-v1_1-gguf",
             "messages": [
                 { 
                     "role": "user",

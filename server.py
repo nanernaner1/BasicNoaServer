@@ -11,7 +11,13 @@ import logging
 import datetime
 import os
 
+import wave
+import io
+
 from lm_studio_provider import LMStudioProvider
+from ollama_provider import OllamaProvider
+
+from text_to_speech import tts
 
 
 
@@ -28,7 +34,8 @@ if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
 # Initialize provider and working memory
-provider = LMStudioProvider()
+# provider = LMStudioProvider()
+provider = OllamaProvider()
 
 
 # Load profile and prompt data
@@ -96,18 +103,46 @@ def process_request():
         {"role": "user", "content": "shorten any replies to only a sentence or four long, so make sure to be quick and to the point, only giving the relevant information, this is for use on a small HUD display whatever response format is given."} #tune this to refine responses for the frame
     ]
 
+    # Convert audio_result response from lm studio to audio and deliver it to the user
+    # audio_base64 = get_audio_data(audio_result, "audio/wav")
+
+
+
     # Include module data if any
     if module_data:
         chat_messages.append({"role": "user", "content": f"Relevant data: {module_data}"})
     # Send data to local LM Studio chat model
     lm_data = provider.send_request(chat_messages, 0.7)
 
+    # # Read in sample wav file 1.wav 
+    # import wave
+    # wf = wave.open('1.wav', 'r')
+    # audio_data = wf.readframes(wf.getnframes())
+    # sample_rate = wf.getframerate()
+    # raw_audio_bytes = audio_data
+    # audio_base64 = base64.b64encode(raw_audio_bytes).decode('utf-8')
+    
+    # Convert response from LLM text into audio wav file and deliver in json response
+    tts(lm_data)
+    with io.BytesIO() as output:
+        with wave.open(output, "wb") as wav:
+            wav.setparams((1, 2, 24000, 0, 'NONE', 'NONE'))
+
+            with open('0.wav', 'rb') as input_file:
+                wav.writeframes(input_file.read())
+        
+        output.seek(0)
+        base64str = base64.b64encode(output.getvalue()).decode('utf-8')
+    
+
+
     # Format the response
     response = {
         'user_prompt': audio_result,
         'message': lm_data,
         'image': image_base64, 
-        'audio': audio_base64,
+        # 'audio': audio_base64,
+        'audio': base64str,
         'debug': {
             'topic_changed': False,
             'info': "response from NoaRouter request: " + audio_result + " response: " + lm_data
