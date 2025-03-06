@@ -61,19 +61,23 @@ def process_request():
     if 'location' not in request.form or 'time' not in request.form or 'messages' not in request.form:
         return jsonify({"error": "Missing form data"}), 200
 
-    # Parse response for its contents
-    # Send contents to LLM
-    # Retrieve response from LLM
-    # Convert response to text and audio file(s)
-    # Prepare JSON response to be returned to user 
+    # 1. Handle response from client
+    # 2. Exchange communication with LLM
+    # 3. Convert LLM response to Audio
+    # 4. Prepare response for client
+    # 5. Return JSON response to client
     
+    # 1. HANDLE Response from Client
+
+    # PARSE response FROM Client
     audio = request.files['audio']
     image = request.files['image']
     location = request.form['location']
     time = request.form['time']
     messages = request.form['messages']
     custom_prompt = request.form.get('custom_prompt', prompt_data)
-
+    
+    #_# `IF` Audio is present, TRANSCRIBE Input Audio from Client
     # Convert files to base64
     audio_base64 = base64.b64encode(audio.read()).decode('utf-8')
     image_base64 = base64.b64encode(image.read()).decode('utf-8')
@@ -86,16 +90,16 @@ def process_request():
     audio_result = transcribe_audio(audio_data)
     print(audio_result)
 
-    # Load and execute relevant modules
+    #--# Load and execute relevant modules
     modules = load_modules()
     module_data = find_and_execute_module(modules, audio_result, provider)
     #module_data = ingestToAllModules(audio_result, provider)
     
-
+    #_# `IF` Video is present, GENERATE Context from scene
     # Send image data to LM Studio vision model, or don't because until the camera works better in lighting situations, this will clog up and muddy the results by giving false seeds to memories.
-    vision_data = "" #get_vision_data(image_base64, "Extract relevant information from the image, describe the scene, elements within it, any text present, etc. The goal is to encode the scene in a narrative as though from memory. This should be a brief description of the image, not a lengty one. Simple and sweet, under 200 words or less.")
+    vision_data = "" #get_vision_data(image_base64, "Extract relevant information from the image, describe the scene, elements within it, any text present, etc. The goal is to encode the scene in a narrative as though from memory. This should be a brief description of the image, not a lengthy one. Simple and sweet, under 200 words or less.")
     
-    # Prepare messages for LM Studio chat model
+    # PREPARE messages for LLM chat model inference
     chat_messages = [
         {"role": "system", "content": profile_data},
         {"role": "user", "content": custom_prompt},
@@ -107,31 +111,33 @@ def process_request():
     # Convert audio_result response from lm studio to audio and deliver it to the user
     # audio_base64 = get_audio_data(audio_result, "audio/wav")
 
-
-
     # Include module data if any
     if module_data:
         chat_messages.append({"role": "user", "content": f"Relevant data: {module_data}"})
+
+    #### ------------------------ ####
+
+    ## 2. EXCHANGE Communication with LLM
+
     # Send data to local LM Studio chat model
     lm_data = provider.send_request(chat_messages, 0.7)
+
+    #### ------------------------ ####
+
+    ### 3. CONVERT LLM Response into Audio
 
     # Convert response from LLM text into audio wav file
     convert_tts_into_audio_file(lm_data)
 
     # Read the audio file and convert it to base64 to be delivered in response
-    # Audio data is stored across multiple audio files in directory "audio_responses". Iterate over all files in target directory and return all audio as single base64 string
-    def read_wav_files_from_directory(directory):
-        base64str = ""
-        for filename in os.listdir(directory):
-            if filename.endswith(".wav"):
-                with open(os.path.join(directory,filename), "rb") as f:
-                    base64str += base64.b64encode(f.read()).decode("utf-8") + ","
-        print(f"Retrieved Audio files from directory: {directory})")
-        return base64str
-
     base64str = read_speech_from_audio_file('last_response.wav')
+
+    ## UNUSED for now
     # base64str = read_wav_files_from_directory('audio_responses')
 
+    #### ------------------------ ####
+
+    #### 4. PREPARE Response to Client
     # Format the response
     response = {
         'user_prompt': audio_result,
@@ -173,6 +179,16 @@ def transcribe_audio(audio_data):
     except sr.RequestError as e:
         transcription = f"Could not request results; {e}"
     return transcription
+
+    # Audio data is stored across multiple audio files in directory "audio_responses". Iterate over all files in target directory and return all audio as single base64 string
+def read_wav_files_from_directory(directory):
+    base64str = ""
+    for filename in os.listdir(directory):
+        if filename.endswith(".wav"):
+            with open(os.path.join(directory,filename), "rb") as f:
+                base64str += base64.b64encode(f.read()).decode("utf-8") + ","
+    print(f"Retrieved Audio files from directory: {directory})")
+    return base64str
 
 def get_vision_data(base64_image, query):
     vision_result = "Vision capability not supported"
