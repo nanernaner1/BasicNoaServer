@@ -11,7 +11,7 @@ class OllamaProvider(ProviderBase):
         payload = {
             "messages": chat_messages,
             "temperature": temperature,
-            "model": "deepseek-r1:7b",
+            "model": "deepseek-r1:1.5b",
             # "model": "qwen2.5:3b",
             "stream": False
         }

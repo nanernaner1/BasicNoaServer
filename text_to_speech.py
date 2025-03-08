@@ -1,27 +1,30 @@
-from kokoro import KPipeline
-from IPython.display import display, Audio
-import soundfile as sf
 import wave
 import io
 import base64
+
+from pydub import AudioSegment
+from gtts import gTTS
 # 🇺🇸 'a' => American English, 🇬🇧 'b' => British English
 # 🇯🇵 'j' => Japanese: pip install misaki[ja]
 # 🇨🇳 'z' => Mandarin Chinese: pip install misaki[zh]
 
-def convert_tts_into_audio_file(text: str):
-    pipeline = KPipeline(lang_code='a') # <= make sure lang_code matches voice
-
+def convert_tts_into_audio_file(text: str) -> str:
     text_to_convert = text
     # 4️⃣ Generate, display, and save audio files in a loop.
-    generator = pipeline(
-        text_to_convert, voice='af_heart', # <= change voice here
-        speed=1, split_pattern=r'\n+'
-    )
-    for i, (gs, ps, audio) in enumerate(generator):
-        print(i)  # i => index
-        print(gs) # gs => graphemes/text
-        print(ps) # ps => phonemes
-        sf.write(f'audio_responses/{i}-last_response.wav', audio, 24000) # save each audio file
+    tts = gTTS(text_to_convert)
+    tts.save('audio_response/last_response.mp3')
+    return 'audio_response/last_response.mp3'
+
+def convert_mp3_to_wav(filename: str):
+    input_file = filename
+    output_file = 'audio_response/last_response.wav'
+
+    try:
+        sound = AudioSegment.from_mp3(input_file)
+        sound.export(output_file, format='wav')
+    except Exception as err:
+        return 'failed to convert'
+    return 'File converted successfully!'
 
 def read_speech_from_audio_file(wav_filename: str):
     with io.BytesIO() as output:

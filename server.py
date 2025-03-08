@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 from io import BytesIO
 import speech_recognition as sr
 import base64
@@ -10,7 +10,7 @@ from logging import Logger
 
 import wave
 import io
-from text_to_speech import convert_tts_into_audio_file, read_speech_from_audio_file
+from text_to_speech import convert_tts_into_audio_file, convert_mp3_to_wav, read_speech_from_audio_file
 
 from lm_studio_provider import LMStudioProvider
 from ollama_provider import OllamaProvider
@@ -49,7 +49,27 @@ try:
 except FileNotFoundError as e:
     print("Error loading prompt data:", e)
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET'])
+def home():
+    template = """
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Flask Template as String</title>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Welcome to Flask!</h1>
+          <p>This is a simple template rendered from a string.</p>
+        </div>
+      </body>
+    </html>
+    """
+    return render_template_string(template)
+
+@app.route('/llm', methods=['POST'])
 def process_request():
     print("Got in request")
     #check the status code if not 200 return error
@@ -120,7 +140,10 @@ def process_request():
     ## 2. EXCHANGE Communication with LLM
 
     # Send data to local LM Studio chat model
-    lm_data = provider.send_request(chat_messages, 0.7)
+    try:
+        lm_data = provider.send_request(chat_messages, 0.7)
+    except Exception as err:
+        return "Failed to communicate with model"
 
     #### ------------------------ ####
 
@@ -128,9 +151,10 @@ def process_request():
 
     # Convert response from LLM text into audio wav file
     convert_tts_into_audio_file(lm_data)
+    convert_mp3_to_wav('audio_response/last_response.mp3')
 
     # Read the audio file and convert it to base64 to be delivered in response
-    base64str = read_speech_from_audio_file('last_response.wav')
+    base64str = read_speech_from_audio_file('audio_response/last_response.wav')
 
     ## UNUSED for now
     # base64str = read_wav_files_from_directory('audio_responses')
