@@ -1,17 +1,8 @@
 # BasicNoaServer
  For the Brilliant Labs Frame Glasses - a basic python handler for requests from the app.
 
+This is a sample server that communicates with the Brilliant Labs Noa app that can be retrieved from the iOS App Store or the Google Play Store. The goal is to build an application that can use the Frames glasses as a 'mic' and 'camera' to communicate with a LLM running locally through Ollama or HuggingFace via HuggingFace Hub API over the public internet.
 
- can expose via ngrock if wanted, but that is beyond the scope of how this was used/set up for beyond the basic tests. 
+This is a work in progress and a personal project.
 
-On the local network the server should be exposed (and tell you the server/port)
-
- put that into the app as http://< ip >:< port > and it should work.  I just set no as the api key and such, and it worked for the basic tests this was used for.
-
-
- Not much help can/will be given for this, as it is a one-off to merge into larger projects.
-
-Probably needs to have flask, speech_recognition, abstractmethod (abc), and requests installed.  I think that is all that is needed that isn't in default python. 
-
-
-GPT4All provider not tested
+Currently tested successfully on an Android smartphone with Ollama providing inferencing with DeepSeek-r1:1.5b on a PC. While it is possible to run Ollama locally on the Android smartphone, the resource intensity seems to be too much for simultaneous audio transcription, text-to-speech, and Ollama inferencing. An attempt to wrap some of the processing in a Rust wrapper is in the works to see if this helps run entirely on a single device.
